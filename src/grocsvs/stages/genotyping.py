@@ -49,12 +49,16 @@ class MergeGenotypesStep(step.StepChunk):
         genotypes = pandas.concat(genotypes, ignore_index=True)
         genotypes["chromx"] = genotypes["chromx"].astype("string")
         genotypes["chromy"] = genotypes["chromy"].astype("string")
-        
+
         counts = genotypes.groupby("cluster").count()["total"]
 
         for row in genotypes.itertuples():
-            print row.Index, row.cluster, counts[row.cluster]
-            genotypes.loc[row.Index, "cluster_size"] = int(counts[row.cluster])
+            try:
+                print row.Index, row.cluster, counts[row.cluster]
+                genotypes.loc[row.Index, "cluster_size"] = int(counts[row.cluster])
+            except AttributeError:
+                print row[0], row[genotypes.columns.get_loc("cluster")+1], counts[row[genotypes.columns.get_loc("cluster")+1]]
+                genotypes.loc[row[0], "cluster_size"] = int(counts[row[genotypes.columns.get_loc("cluster")+1]])
 
         genotypes["dist"] = (genotypes["x"] - genotypes["y"]).abs()
         genotypes.loc[genotypes["chromx"]!=genotypes["chromy"], "dist"] = numpy.nan
