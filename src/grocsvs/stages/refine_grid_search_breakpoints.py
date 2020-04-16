@@ -5,6 +5,7 @@ import numpy
 import os
 import pandas
 import scipy.stats
+import math
 
 from grocsvs import step
 from grocsvs import structuralvariants
@@ -348,6 +349,17 @@ def quantify_breakpoint(chromx, x, chromy, y, orientation,
         cur_result["{}_total".format(sample.name)] = len(total_barcodes)
 
         if len(common_barcodes) < 1:
+            if "{}_shared".format(sample.name) not in cur_result:
+                cur_result["{}_shared".format(sample.name)] = float("Nan")
+
+                cur_result["{}_p_fisher".format(sample.name)] = float("Nan")
+                cur_result["{}_p_resampling".format(sample.name)] = float("Nan")
+
+                if with_phasing:
+                    cur_result["{}_x_hap0".format(sample.name)] = float("Nan")
+                    cur_result["{}_x_hap1".format(sample.name)] = float("Nan")
+                    cur_result["{}_y_hap0".format(sample.name)] = float("Nan")
+                    cur_result["{}_y_hap1".format(sample.name)] = float("Nan")
             continue
 
         good_bc_count = good_bc_counts_by_dataset[dataset.id]
@@ -362,7 +374,6 @@ def quantify_breakpoint(chromx, x, chromy, y, orientation,
         cur_result["{}_p_fisher".format(sample.name)] = p_fisher
         cur_result["{}_p_resampling".format(sample.name)] = p_resampling
 
-
         if with_phasing:
             cur_result["{}_x_hap0".format(sample.name)] = (merged["hap_x"].isin([0,2])).sum()
             cur_result["{}_x_hap1".format(sample.name)] = (merged["hap_x"] == 1).sum()
@@ -374,7 +385,10 @@ def quantify_breakpoint(chromx, x, chromy, y, orientation,
             cur_result["shared"] += len(common_barcodes)
             cur_result["total"] += len(total_barcodes)
 
-    cur_result["p_resampling"] = min(cur_result.get("{}_p_resampling".format(sample_name), 1.0)
-                          for sample_name in options.samples)
+    p_resamples = [cur_result.get("{}_p_resampling".format(sample_name), 1.0)
+                                      for sample_name in options.samples]
+    for i, resample in enumerate(p_resamples):
+        if math.isnan(resample): p_resamples[i] = 1.0
+    cur_result["p_resampling"] = min(p_resamples)
 
     return pandas.Series(cur_result)
