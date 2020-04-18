@@ -112,10 +112,6 @@ class SVCandidateRegionsStep(step.StepChunk):
         chromx_length = self.options.reference.chrom_lengths[self.chromx]
         chromy_length = self.options.reference.chrom_lengths[self.chromy]
 
-        print "Window size: ", window_size, type(window_size)
-        print "chromx length: ", chromx_length, type(chromx_length)
-        print "chromy length: ", chromy_length, type(chromy_length)
-
         num_chromy = chromy_length/window_size
         num_chromx = chromx_length/window_size
 
@@ -128,17 +124,12 @@ class SVCandidateRegionsStep(step.StepChunk):
         hist = numpy.zeros((num_chromy, num_chromx))
         p =    numpy.zeros((num_chromy, num_chromx))
 
-        print hist, p
-        print hist.shape, p.shape
-
         hist[:] = numpy.nan
         p[:] = numpy.nan
 
         counter = 0
         for chunk in barcode_overlaps.BarcodeOverlapsStep.chunks_for_chroms(
             self.options, self.sample, self.dataset, self.chromx, self.chromy):
-            print "---Loop start: ", counter
-            print "---Chunk: ", chunk, type(chunk)
 
             inpaths = chunk.outpaths(final=True)
 
@@ -146,20 +137,13 @@ class SVCandidateRegionsStep(step.StepChunk):
             cur_hist = numpy.array(cur_file["hist"])
             cur_p =    numpy.array(cur_file["p"])
 
-            print list(cur_file.keys())
-            print "---cur_file: ", cur_file, type(cur_file)
-            print "---cur_hist shape, hist shape: ", cur_hist.shape, hist.shape
-            print "---cur_p shape, p shape: ", cur_p.shape, p.shape
-
             hist[chunk.chunky*5000:(chunk.chunky+1)*5000,
                  chunk.chunkx*5000:(chunk.chunkx+1)*5000] = cur_hist
 
             p[chunk.chunky*5000:(chunk.chunky+1)*5000,
               chunk.chunkx*5000:(chunk.chunkx+1)*5000] = cur_p
-            print "---Loop end: ", counter
             counter += 1
 
-        print "COUNTs:", numpy.isnan(hist).sum(), (~numpy.isnan(hist)).sum()
         return hist, p
 
 

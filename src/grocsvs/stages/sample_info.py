@@ -66,14 +66,12 @@ class SampleInfoStep(step.StepChunk):
         for dataset in self.sample.datasets:
             self.logger.log("Getting sample info for {}".format(dataset.id))
             results_by_dataset[dataset.id] = self.get_dataset_info(dataset)
-            print "-----results by ds:", dataset.id, results_by_dataset[dataset.id]
 
         utilities.pickle.dump(results_by_dataset,
             open(outpath, "w"), protocol=-1)
 
     def get_dataset_info(self, dataset):
         if isinstance(dataset, svdatasets.TenXDataset):
-            print "---instance with 10x:", dataset.id
             return self.get_10xdataset_info(dataset)
 
         if (isinstance(dataset, svdatasets.ShortFragDataset) or
@@ -124,17 +122,13 @@ def get_bg_fragments_distributions(_id, frags, reference, logger, skip_length=1e
     distributions = []
 
     for chrom in reference.chroms:
-        print _id, type(chrom), chrom
         logger.log("BG Frag Length Distribution: {}".format(chrom))
         chrom_length = reference.chrom_lengths[chrom]
         curfrags = frags.loc[frags["chrom"]==chrom]
-        print "---chrom_len, curfrags:", _id, chrom_length
 
-        if chrom_length < 2*skip_length: 
-            print "---", _id, chrom, "skipped............"
+        if chrom_length < 2*skip_length:
             continue
         for pos in numpy.arange(skip_length, chrom_length - skip_length, skip_length):
-            print "---pos:", _id, pos
             e = utilities.frags_overlap_same_chrom(curfrags, int(pos), int(pos))
             if e.shape[0] < 5:
                 continue
@@ -150,7 +144,6 @@ def get_bg_fragments_distributions(_id, frags, reference, logger, skip_length=1e
             curfrags = frags.loc[frags["chrom"]==chrom]
             distributions.append(curfrags["obs_len"].values)
     
-    print "--- final dist:", _id, len(distributions), distributions
     return distributions
 
 def n50(values, fraction=0.5):
